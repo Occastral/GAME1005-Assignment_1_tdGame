@@ -282,27 +282,19 @@ int main()
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 10 }, levelOneTiles, WAYPOINT);
 
-            // CHANGE GAMEPLAY SCREEN
-            if (IsKeyPressed(KEY_TWO))
-            {
-                currentScreen = LEVEL_TWO;
-            }
-            if (IsKeyPressed(KEY_THREE))
-            {
-                currentScreen = LEVEL_THREE;
-            }
-            if (IsKeyPressed(KEY_F))
-            {
-                currentScreen = LEVEL_ONE_FAILURE;
-            }
         } break;
 
         case LEVEL_ONE_FAILURE:
         {
 
-            if (IsKeyPressed(KEY_SPACE))
+
+        } break;
+
+        case LEVEL_ONE_SUCCESS:
+        {
+            if (IsKeyPressed (KEY_SPACE))
             {
-                currentScreen = LEVEL_ONE;
+                currentScreen = LEVEL_TWO;
             }
         } break;
 
@@ -311,31 +303,19 @@ int main()
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 4 }, levelTwoTiles, WAYPOINT);
 
-            // CHANGE GAMEPLAY SCREEN
-            if (IsKeyPressed(KEY_ONE))
-            {
-                currentScreen = LEVEL_ONE;
-            }
-            if (IsKeyPressed(KEY_THREE))
-            {
-                currentScreen = LEVEL_THREE;
-            }
-            if (IsKeyPressed(KEY_F))
-            {
-                currentScreen = LEVEL_TWO_FAILURE;
-            }
         } break;
 
         case LEVEL_TWO_FAILURE:
         {
 
+           
+        } break;
+
+        case LEVEL_TWO_SUCCESS:
+        {
             if (IsKeyPressed(KEY_SPACE))
             {
                 currentScreen = LEVEL_TWO;
-            }
-            if (IsKeyPressed(KEY_BACKSPACE))
-            {
-                currentScreen = LEVEL_ONE;
             }
         } break;
 
@@ -344,45 +324,18 @@ int main()
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 17 }, levelThreeTiles, WAYPOINT);
 
-            // CHANGE GAMEPLAY SCREEN
-            if (IsKeyPressed(KEY_ONE))
-            {
-                currentScreen = LEVEL_ONE;
-            }
-            if (IsKeyPressed(KEY_TWO))
-            {
-                currentScreen = LEVEL_TWO;
-            }
-            if (IsKeyPressed(KEY_F))
-            {
-                currentScreen = LEVEL_THREE_FAILURE;
-            }
-            if (IsKeyPressed(KEY_S))
-            {
-                currentScreen = GAME_WON;
-            }
         } break;
 
         case LEVEL_THREE_FAILURE:
         {
 
-            if (IsKeyPressed(KEY_SPACE))
-            {
-                currentScreen = LEVEL_THREE;
-            }
-            if (IsKeyPressed(KEY_BACKSPACE))
-            {
-                currentScreen = LEVEL_ONE;
-            }
+            
         } break;
 
         case GAME_WON:
         {
 
-            if (IsKeyPressed(KEY_BACKSPACE))
-            {
-                currentScreen = LEVEL_ONE;
-            }
+            
         } break;
         default: break;
         }
@@ -551,12 +504,24 @@ int main()
             DrawText("DEFEAT", 190, 320, 100, WHITE);
             DrawText("Press SPACE to Retry Level One", 200, 750, 23, RAYWHITE);
         } break;
+        case LEVEL_ONE_SUCCESS:
+        {
+            ClearBackground(GREEN);
+            DrawText("LEVEL COMPLETE", 120, 320, 60, WHITE);
+            DrawText("Press SPACE to Continue", 240, 750, 23, RAYWHITE);
+        } break;
         case LEVEL_TWO_FAILURE:
         {
             ClearBackground(RED);
             DrawText("DEFEAT", 190, 320, 100, WHITE);
             DrawText("Press SPACE to Retry Level Two", 190, 720, 23, RAYWHITE);
             DrawText("Press BACKSPACE to Restart from Level One", 130, 750, 23, RAYWHITE);
+        } break;
+        case LEVEL_TWO_SUCCESS:
+        {
+            ClearBackground(GREEN);
+            DrawText("LEVEL COMPLETE", 120, 320, 60, WHITE);
+            DrawText("Press SPACE to Continue", 240, 750, 23, RAYWHITE);
         } break;
         case LEVEL_THREE_FAILURE:
         {
