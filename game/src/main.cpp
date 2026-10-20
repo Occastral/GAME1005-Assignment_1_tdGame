@@ -14,6 +14,12 @@ constexpr float SCREEN_SIZE = 800;
 constexpr int TILE_COUNT = 20;
 constexpr float TILE_SIZE = SCREEN_SIZE / TILE_COUNT;
 float timer = 0.0f;
+bool levelSuccess = false;
+bool levelFailure = false;
+
+//CURSOR POSITION
+float cursorX;
+float cursorY;
 
 enum GameScreen
 {
@@ -27,7 +33,6 @@ enum GameScreen
     LEVEL_THREE_FAILURE,
     GAME_WON
 };
-
 
 enum TileType : int
 {
@@ -137,7 +142,7 @@ struct Enemy
     Vector2 enemy_position;
     float enemy_speed = 250.0f;
     float min_distance = (enemy_speed / 60.0f) * 1.1f;
-    float health = 100.0f;
+    float health = 1000.0f;
     int curr = 0;
     bool at_end = false;
     bool destroy = false;
@@ -156,6 +161,9 @@ struct Turret
     float max_cooldown = 0.75f;
     bool destroy = false;
 };
+
+Vector2 turret_position;
+int turret_count = 0;
 
 //PROGRAM MAIN ENTRY POINT =========================================================================
 
@@ -244,7 +252,6 @@ int main()
     
     //==================================================================================================
 
-
     float bullet_time_current = 0.0f;
     float bullet_time_total = 0.25f;
 
@@ -257,12 +264,12 @@ int main()
     //TURRET CREATION ==================================================================================
     
         // Manual turret creation example
-    turrets.resize(5);
+    /*turrets.resize(5);
     turrets[0].cell = { 1,  12 };
     turrets[1].cell = { 4,  8 };
     turrets[2].cell = { 7, 3 };
     turrets[3].cell = { 10, 8 };
-    turrets[4].cell = { 16, 12 };
+    turrets[4].cell = { 16, 12 };*/
 
     // GAME WINDOW =====================================================================================
 
@@ -272,6 +279,8 @@ int main()
     {
         float dt = GetFrameTime();
         timer = timer + dt;
+        cursorX = GetMouseX() / TILE_SIZE;
+        cursorY = GetMouseY() / TILE_SIZE;
 
 // UPDATE GAME SCREEN ==================================================================================
 
@@ -282,18 +291,60 @@ int main()
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 10 }, levelOneTiles, WAYPOINT);
 
+            if (levelFailure)
+            {
+                currentScreen = LEVEL_ONE_FAILURE;
+            }
+            if (levelSuccess)
+            {
+                currentScreen = LEVEL_ONE_SUCCESS;
+            }
+
         } break;
 
         case LEVEL_ONE_FAILURE:
         {
-
+            for (Enemy& enemy : enemies)
+            {
+                enemy.destroy = true;
+            }
+            for (Turret& turret : turrets)
+            {
+                turret.destroy = true;
+            }
+            for (Bullet& bullet : bullets)
+            {
+                bullet.destroy = true;
+            }
+            if (IsKeyPressed(KEY_SPACE))
+            {
+                levelFailure = false;
+                timer = 0.0f;   // Reset Timer
+                enemy_count = 0.0f;     // Reset Enemy Counter
+                currentScreen = LEVEL_ONE;
+            }
 
         } break;
 
         case LEVEL_ONE_SUCCESS:
         {
-            if (IsKeyPressed (KEY_SPACE))
+            for (Enemy& enemy : enemies)
             {
+                enemy.destroy = true;
+            }
+            for (Turret& turret : turrets)
+            {
+                turret.destroy = true;
+            }
+            for (Bullet& bullet : bullets)
+            {
+                bullet.destroy = true;
+            }
+            if (IsKeyPressed(KEY_SPACE))
+            {
+                levelSuccess = false;
+                timer = 0.0f;   // Reset Timer
+                enemy_count = 0.0f;     // Reset Enemy Counter
                 currentScreen = LEVEL_TWO;
             }
         } break;
@@ -303,19 +354,65 @@ int main()
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 4 }, levelTwoTiles, WAYPOINT);
 
+            if (levelFailure)
+            {
+                currentScreen = LEVEL_TWO_FAILURE;
+            }
+            if (levelSuccess)
+            {
+                currentScreen = LEVEL_TWO_SUCCESS;
+            }
+
         } break;
 
         case LEVEL_TWO_FAILURE:
         {
+            for (Enemy& enemy : enemies)
+            {
+                enemy.destroy = true;
+            }
+            for (Turret& turret : turrets)
+            {
+                turret.destroy = true;
+            }
+            for (Bullet& bullet : bullets)
+            {
+                bullet.destroy = true;
+            }
+            if (IsKeyPressed(KEY_SPACE))
+            {
+                levelFailure = false;
+                timer = 0.0f;   // Reset Timer
+                enemy_count = 0.0f;     // Reset Enemy Counter
+                currentScreen = LEVEL_TWO;
+            }
+            if (IsKeyPressed(KEY_BACKSPACE))
+            {
+                levelSuccess = false;
+                timer = 0.0f;   // Reset Timer
+                enemy_count = 0.0f;     // Reset Enemy Counter
+                currentScreen = LEVEL_ONE;
+            }
 
-           
         } break;
 
         case LEVEL_TWO_SUCCESS:
         {
+            for (Enemy& enemy : enemies)
+            {
+                enemy.destroy = true;
+            }
+            for (Turret& turret : turrets)
+            {
+                turret.destroy = true;
+            }
+            for (Bullet& bullet : bullets)
+            {
+                bullet.destroy = true;
+            }
             if (IsKeyPressed(KEY_SPACE))
             {
-                currentScreen = LEVEL_TWO;
+                currentScreen = LEVEL_THREE;
             }
         } break;
 
@@ -324,18 +421,61 @@ int main()
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 17 }, levelThreeTiles, WAYPOINT);
 
+            if (levelFailure)
+            {
+                currentScreen = LEVEL_THREE_FAILURE;
+            }
+            if (levelSuccess)
+            {
+                currentScreen = GAME_WON;
+            }
+
         } break;
 
         case LEVEL_THREE_FAILURE:
         {
-
-            
+            for (Enemy& enemy : enemies)
+            {
+                enemy.destroy = true;
+            }
+            for (Turret& turret : turrets)
+            {
+                turret.destroy = true;
+            }
+            for (Bullet& bullet : bullets)
+            {
+                bullet.destroy = true;
+            }
+            if (IsKeyPressed(KEY_SPACE))
+            {
+                levelFailure = false;
+                timer = 0.0f;   // Reset Timer
+                enemy_count = 0.0f;     // Reset Enemy Counter
+                currentScreen = LEVEL_THREE;
+            }
+            if (IsKeyPressed(KEY_BACKSPACE))
+            {
+                levelSuccess = false;
+                timer = 0.0f;   // Reset Timer
+                enemy_count = 0.0f;     // Reset Enemy Counter
+                currentScreen = LEVEL_ONE;
+            }
         } break;
 
         case GAME_WON:
         {
-
-            
+            for (Enemy& enemy : enemies)
+            {
+                enemy.destroy = true;
+            }
+            for (Turret& turret : turrets)
+            {
+                turret.destroy = true;
+            }
+            for (Bullet& bullet : bullets)
+            {
+                bullet.destroy = true;
+            }
         } break;
         default: break;
         }
@@ -363,6 +503,10 @@ int main()
                     enemy.at_end = enemy.curr == waypoints.size() - 1;
                 }
             }
+            if (enemy.at_end)
+            {
+                levelFailure = true;
+            }
         }
 
     //TURRET LOGIC =====================================================================================
@@ -373,7 +517,7 @@ int main()
             
             if (turret.cooldown >= turret.max_cooldown)
             {
-                Vector2 turret_position = TileCenter(turret.cell.row, turret.cell.col);
+                turret_position = TileCenter(turret.cell.row, turret.cell.col);
                 Vector2 enemy_position = turret_position;
                 float max = FLT_MAX;
                 for (Enemy& enemy : enemies)
@@ -547,20 +691,23 @@ int main()
             DrawCircleV(enemy.enemy_position, 20.0f, RED);
         }
 
-        if (timer < 1.0f)
+        if (turret_count == 5)  // Don't start spawning enemies until 5 turrets are placed
         {
+            if (timer < 1.0f)
+            {
 
+            }
+            if (timer >= 1.0f && enemy_count < 10)
+            {
+                Enemy testEnemy;
+                testEnemy.enemy_position = TileCenter(waypoints[0].row, waypoints[0].col);
+                enemies.push_back(testEnemy);
+                timer = timer - 1.0f;
+                timer = timer + dt;
+                enemy_count++;
+            }
         }
-        if (timer >= 1.0f && enemy_count < 10)
-        {
-            Enemy testEnemy;
-            testEnemy.enemy_position = TileCenter(waypoints[0].row, waypoints[0].col);
-            enemies.push_back(testEnemy);
-            timer = timer - 1.0f;
-            timer = timer + dt;
-            enemy_count++;
-        }
-
+        
 
     //BULLET SPAWNING ==================================================================================
 
@@ -575,6 +722,36 @@ int main()
         {
             DrawRectangleV(Vector2(turret.cell.col * TILE_SIZE, turret.cell.row * TILE_SIZE), { TILE_SIZE, TILE_SIZE }, ORANGE);
         }
+
+        if (turret_count < 5)   // can place turrets
+        {
+
+
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            {
+                turrets.resize(1);
+                turrets[0].cell = { GetMouseX(),  GetMouseY()};
+            };
+            if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+            {
+                if (GetMousePosition() == turret_position)
+                {
+                    for (const Turret& turret : turrets)
+                    {
+                        turret.destroy;
+                    }
+                }
+            };
+        }
+        if (turret_count == 5)  // can no longer place turrets
+        {
+
+        }
+
+    // =================================================================================================
+        DrawText(TextFormat("Timer : %.2f", timer), 200, 200, 20, BLACK);
+
+        DrawRectangleV(Vector2(cursorX, cursorY), { TILE_SIZE, TILE_SIZE }, ORANGE);
 
         EndDrawing();
     }
