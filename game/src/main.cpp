@@ -17,9 +17,11 @@ float timer = 0.0f;
 bool levelSuccess = false;
 bool levelFailure = false;
 
-//CURSOR POSITION
-float cursorX;
-float cursorY;
+// MOUSE POSITION =================================================================================
+
+Vector2 mousePositionWorld;
+Vector2 mousePositionGrid;
+
 
 enum GameScreen
 {
@@ -39,6 +41,7 @@ enum TileType : int
     STONE,      // Marks unoccupied space, can be overwritten 
     PATH,       // Marks the path, cannot be overwritten
     WAYPOINT,   // Marks where the path turns, cannot be overwritten
+    TURRET,
     COUNT
 };
 
@@ -49,6 +52,8 @@ struct Cell
 };
 
 constexpr std::array<Cell, 4> DIRECTIONS{ Cell{ -1, 0 }, Cell{ 1, 0 }, Cell{ 0, -1 }, Cell{ 0, 1 } };
+
+Cell mouseCell;
 
 inline bool InBounds(Cell cell, int rows = TILE_COUNT, int cols = TILE_COUNT)
 {
@@ -64,11 +69,12 @@ void DrawTile(int row, int col, Color color)
 
 void DrawTile(int row, int col, int type)
 {
-    Color colors[3] =
+    Color colors[4] =
     {
         GRAY,
         LIGHTGRAY,
-        WHITE
+        WHITE,
+        ORANGE
     };
     DrawTile(row, col, colors[type]);
 }
@@ -278,17 +284,18 @@ int main()
     while (!WindowShouldClose())
     {
         float dt = GetFrameTime();
-        timer = timer + dt;
-        cursorX = GetMouseX() / TILE_SIZE;
-        cursorY = GetMouseY() / TILE_SIZE;
 
+            // MOUSE POSITION
+        mousePositionWorld = GetMousePosition();
+        mousePositionGrid = Vector2(floorf(mousePositionWorld.x / TILE_SIZE), floorf(mousePositionWorld.y / TILE_SIZE));
+        mouseCell = Cell(mousePositionGrid.y, mousePositionGrid.x);
+        
 // UPDATE GAME SCREEN ==================================================================================
 
         switch (currentScreen)
         {
         case LEVEL_ONE:
-        {
-            // SET WAYPOINTS
+                    // SET WAYPOINTS
             waypoints = FloodFill({ 0, 10 }, levelOneTiles, WAYPOINT);
 
             if (levelFailure)
@@ -300,10 +307,10 @@ int main()
                 currentScreen = LEVEL_ONE_SUCCESS;
             }
 
-        } break;
+        break;
 
         case LEVEL_ONE_FAILURE:
-        {
+       
             for (Enemy& enemy : enemies)
             {
                 enemy.destroy = true;
@@ -321,13 +328,24 @@ int main()
                 levelFailure = false;
                 timer = 0.0f;   // Reset Timer
                 enemy_count = 0.0f;     // Reset Enemy Counter
+                turret_count = 0.0f;    // Reset Turret Counter
+                for (int row = 0; row < TILE_COUNT; row++)
+                {
+                    for (int col = 0; col < TILE_COUNT; col++)
+                    {
+                        if (levelOneTiles[row][col] == TURRET)
+                        {
+                            levelOneTiles[row][col] = STONE;
+                        }
+                    }
+                }
                 currentScreen = LEVEL_ONE;
             }
 
-        } break;
+        break;
 
         case LEVEL_ONE_SUCCESS:
-        {
+       
             for (Enemy& enemy : enemies)
             {
                 enemy.destroy = true;
@@ -347,10 +365,10 @@ int main()
                 enemy_count = 0.0f;     // Reset Enemy Counter
                 currentScreen = LEVEL_TWO;
             }
-        } break;
+        break;
 
         case LEVEL_TWO:
-        {
+       
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 4 }, levelTwoTiles, WAYPOINT);
 
@@ -363,10 +381,10 @@ int main()
                 currentScreen = LEVEL_TWO_SUCCESS;
             }
 
-        } break;
+        break;
 
         case LEVEL_TWO_FAILURE:
-        {
+        
             for (Enemy& enemy : enemies)
             {
                 enemy.destroy = true;
@@ -394,10 +412,10 @@ int main()
                 currentScreen = LEVEL_ONE;
             }
 
-        } break;
+        break;
 
         case LEVEL_TWO_SUCCESS:
-        {
+        
             for (Enemy& enemy : enemies)
             {
                 enemy.destroy = true;
@@ -414,10 +432,10 @@ int main()
             {
                 currentScreen = LEVEL_THREE;
             }
-        } break;
+        break;
 
         case LEVEL_THREE:
-        {
+        
             // SET WAYPOINTS
             waypoints = FloodFill({ 0, 17 }, levelThreeTiles, WAYPOINT);
 
@@ -430,10 +448,10 @@ int main()
                 currentScreen = GAME_WON;
             }
 
-        } break;
+        break;
 
         case LEVEL_THREE_FAILURE:
-        {
+        
             for (Enemy& enemy : enemies)
             {
                 enemy.destroy = true;
@@ -460,10 +478,10 @@ int main()
                 enemy_count = 0.0f;     // Reset Enemy Counter
                 currentScreen = LEVEL_ONE;
             }
-        } break;
+        break;
 
         case GAME_WON:
-        {
+        
             for (Enemy& enemy : enemies)
             {
                 enemy.destroy = true;
@@ -476,7 +494,7 @@ int main()
             {
                 bullet.destroy = true;
             }
-        } break;
+        break;
         default: break;
         }
 
@@ -613,7 +631,7 @@ int main()
         switch (currentScreen)
         {
         case LEVEL_ONE:
-        {
+        
             for (int row = 0; row < TILE_COUNT; row++)
             {
                 for (int col = 0; col < TILE_COUNT; col++)
@@ -621,9 +639,9 @@ int main()
                     DrawTile(row, col, levelOneTiles[row][col]);
                 }
             }
-        } break;
+        break;
         case LEVEL_TWO:
-        {
+        
             for (int row = 0; row < TILE_COUNT; row++)
             {
                 for (int col = 0; col < TILE_COUNT; col++)
@@ -631,9 +649,9 @@ int main()
                     DrawTile(row, col, levelTwoTiles[row][col]);
                 }
             }
-        } break;
+        break;
         case LEVEL_THREE:
-        {
+        
             for (int row = 0; row < TILE_COUNT; row++)
             {
                 for (int col = 0; col < TILE_COUNT; col++)
@@ -641,45 +659,45 @@ int main()
                     DrawTile(row, col, levelThreeTiles[row][col]);
                 }
             }
-        } break;
+        break;
         case LEVEL_ONE_FAILURE:
-        {
+        
             ClearBackground(RED);
             DrawText("DEFEAT", 190, 320, 100, WHITE);
             DrawText("Press SPACE to Retry Level One", 200, 750, 23, RAYWHITE);
-        } break;
+        break;
         case LEVEL_ONE_SUCCESS:
-        {
+        
             ClearBackground(GREEN);
             DrawText("LEVEL COMPLETE", 120, 320, 60, WHITE);
             DrawText("Press SPACE to Continue", 240, 750, 23, RAYWHITE);
-        } break;
+        break;
         case LEVEL_TWO_FAILURE:
-        {
+        
             ClearBackground(RED);
             DrawText("DEFEAT", 190, 320, 100, WHITE);
             DrawText("Press SPACE to Retry Level Two", 190, 720, 23, RAYWHITE);
             DrawText("Press BACKSPACE to Restart from Level One", 130, 750, 23, RAYWHITE);
-        } break;
+        break;
         case LEVEL_TWO_SUCCESS:
-        {
+        
             ClearBackground(GREEN);
             DrawText("LEVEL COMPLETE", 120, 320, 60, WHITE);
             DrawText("Press SPACE to Continue", 240, 750, 23, RAYWHITE);
-        } break;
+        break;
         case LEVEL_THREE_FAILURE:
-        {
+        
             ClearBackground(RED);
             DrawText("DEFEAT", 190, 320, 100, WHITE);
             DrawText("Press SPACE to Retry Level Three", 170, 720, 23, RAYWHITE);
             DrawText("Press BACKSPACE to Restart from Level One", 130, 750, 23, RAYWHITE);
-        } break;
+        break;
         case GAME_WON:
-        {
+        
             ClearBackground(GOLD);
             DrawText("YOU WIN!!!", 150, 300, 100, WHITE);
             DrawText("Press ESC to Close the Game, or Backspace to Start Again", 50, 450, 23, RAYWHITE);
-        } break;
+        break;
         default: break;
         }
 
@@ -725,33 +743,30 @@ int main()
 
         if (turret_count < 5)   // can place turrets
         {
-
+            DrawRectangleV(mousePositionGrid* TILE_SIZE, { TILE_SIZE, TILE_SIZE }, ORANGE);
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
             {
-                turrets.resize(1);
-                turrets[0].cell = { GetMouseX(),  GetMouseY()};
+                if (levelOneTiles[mouseCell.row][mouseCell.col] == STONE)
+                {
+                    levelOneTiles[mouseCell.row][mouseCell.col] = TURRET;
+                    Turret testTurret;
+                    testTurret.cell = mouseCell;
+                    turrets.push_back(testTurret);
+                    turret_count++;
+                }
             };
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
             {
-                if (GetMousePosition() == turret_position)
-                {
-                    for (const Turret& turret : turrets)
-                    {
-                        turret.destroy;
-                    }
-                }
+                
             };
         }
         if (turret_count == 5)  // can no longer place turrets
         {
-
+            timer = timer + dt;
         }
 
     // =================================================================================================
-        DrawText(TextFormat("Timer : %.2f", timer), 200, 200, 20, BLACK);
-
-        DrawRectangleV(Vector2(cursorX, cursorY), { TILE_SIZE, TILE_SIZE }, ORANGE);
 
         EndDrawing();
     }
