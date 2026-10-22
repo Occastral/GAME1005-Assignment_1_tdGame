@@ -153,7 +153,7 @@ struct Enemy
     Cell cell;
     Vector2 enemy_position;
     EnemyType type;
-    float enemy_speed = 250.0f;
+    float enemy_speed = 200.0f;
     float radius = 10.0f;
     float min_distance = (enemy_speed / 60.0f) * 1.1f;
     float health = 100.0f;
@@ -173,13 +173,14 @@ struct Turret
     Cell cell;
     Enemy* target;
     float damage = 25.0f;
-    float max_cooldown = 1.0f;
+    float max_cooldown = 0.75f;
     float cooldown = max_cooldown;
     bool destroy = false;
 };
 
 Vector2 turret_position;
 int turret_count = 0;
+//int turret_max = 5;
 
 //LEVEL SETUP ======================================================================================
 
@@ -207,32 +208,32 @@ Enemy SpawnEnemy(EnemyType type)
     {
     case BASIC: //Default Enemy
         testEnemy.health = 100;
-        testEnemy.enemy_speed = 250.0f;
+        testEnemy.enemy_speed = 200.0f;
         testEnemy.radius = 12.0f;
         testEnemy.colour = RED;
         break;
     case SPEEDSTER: //Faster Speed & Less Health
         testEnemy.health = 50;
-        testEnemy.enemy_speed = 500.0f;
+        testEnemy.enemy_speed = 250.0f;
         testEnemy.radius = 10.0f;
         testEnemy.colour = PINK;
         break;
     case TANK:  //Slower Speed & More Health
         testEnemy.health = 200;
         testEnemy.radius = 18.0f;
-        testEnemy.enemy_speed = 200.0f;
+        testEnemy.enemy_speed = 150.0f;
         testEnemy.colour = DARKBLUE;
         break;
     case TRACKSTAR:   //Faster Speed
         testEnemy.health = 100;
         testEnemy.radius = 14.0f;
-        testEnemy.enemy_speed = 500.0f;
+        testEnemy.enemy_speed = 250.0f;
         testEnemy.colour = YELLOW;
         break;
     case BODYBUILDER:   //More Health
         testEnemy.health = 200.0f;
         testEnemy.radius = 20.0f;
-        testEnemy.enemy_speed = 250.0f;
+        testEnemy.enemy_speed = 200.0f;
         testEnemy.colour = MAROON;
         break;
     default:
@@ -485,6 +486,7 @@ int main()
                 enemy_count = 0;     // Reset Enemy Counter
                 enemies_defeated = 0;    // Reset Enemies Defeated
                 turret_count = 0.0f;    // Reset Turret Counter
+                /*turret_max++;*/    // Increment Turret Max
                 if (level1Complete && !level2Complete && !level3Complete)
                 {
                     currentLevel = &levels[1];
@@ -766,7 +768,7 @@ int main()
         
             ClearBackground(GOLD);
             DrawText("YOU WIN!!!", 150, 300, 100, WHITE);
-            DrawText("Press ESC to Close the Game, or Backspace to Start Again", 50, 450, 23, RAYWHITE);
+            DrawText("Press ESC to Close the Game", 240, 750, 23, RAYWHITE);
         break;
         default: break;
         }
@@ -779,35 +781,101 @@ int main()
             DrawCircleV(enemy.enemy_position, enemy.radius, enemy.colour);
         }
 
-        if (turret_count == 5)  // Don't start spawning enemies until 5 turrets are placed
+        if (turret_count == 5)  // Don't start spawning enemies until all turrets are placed
         {
-            if (timer < 1.0f)
+            if (timer < 0.5f)
             {
 
             }
-            if (timer >= 1.0f && enemy_count < currentLevel->enemyTotal)
+            if (timer >= 0.5f && enemy_count < currentLevel->enemyTotal)
             {
                 if (currentScreen == LEVEL_ONE)
                 {
-                    Enemy testEnemy = SpawnEnemy(SPEEDSTER);
-                    testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
-                    currentLevel->enemies.push_back(testEnemy);
+                   
+                    if (enemy_count == 3 || enemy_count == 8)   // Spawn Speedster
+                    {
+                        Enemy testEnemy = SpawnEnemy(SPEEDSTER);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
+                    if (enemy_count == 5 || enemy_count == 9)   //Spawn Tank
+                    {
+                        Enemy testEnemy = SpawnEnemy(TANK);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
+                    else    //Spawn Basic
+                    {
+                        Enemy testEnemy = SpawnEnemy(BASIC);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
                 }
+
+
                 if (currentScreen == LEVEL_TWO)
                 {
-                    Enemy testEnemy = SpawnEnemy(BASIC);
-                    testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
-                    currentLevel->enemies.push_back(testEnemy);
+                    
+                    if (enemy_count == 5 || enemy_count == 9 || enemy_count == 12)   //Spawn Tank
+                    {
+                        Enemy testEnemy = SpawnEnemy(TANK);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
+                    else    //Spawn Speedster
+                    {
+                        Enemy testEnemy = SpawnEnemy(SPEEDSTER);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
                 }
+
+
                 if (currentScreen == LEVEL_THREE)
                 {
-                    Enemy testEnemy = SpawnEnemy(BASIC);
-                    testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
-                    currentLevel->enemies.push_back(testEnemy);
+                    if (enemy_count == 3 || enemy_count == 8)   // Spawn Tank
+                    {
+                        Enemy testEnemy = SpawnEnemy(TANK);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
+                    if (enemy_count == 5 || enemy_count == 9)   //Spawn Bodybuilder
+                    {
+                        Enemy testEnemy = SpawnEnemy(BODYBUILDER);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
+                    else    //Spawn Trackstar
+                    {
+                        Enemy testEnemy = SpawnEnemy(TRACKSTAR);
+                        testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                        currentLevel->enemies.push_back(testEnemy);
+                        timer = timer - 0.5f;
+                        timer = timer + dt;
+                        enemy_count++;
+                    }
                 }
-                timer = timer - 1.0f;
-                timer = timer + dt;
-                enemy_count++;
             }
         }
         
