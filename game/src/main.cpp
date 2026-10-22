@@ -22,12 +22,11 @@ bool levelFailure = false;
 Vector2 mousePositionWorld;
 Vector2 mousePositionGrid;
 
-
 enum GameScreen
 {
-    LEVEL_ONE,
-    LEVEL_TWO,
-    LEVEL_THREE,
+    LEVEL_ONE,  // Mainly Basic, Some Speedsters, Some Tanks
+    LEVEL_TWO,  //Few Basic, Mainly Speedsters & Tanks, One Trackstar
+    LEVEL_THREE,    //Speedsters, Tanks, Few Trackstars, Few Bodybuilders
     LEVEL_FAILURE,
     LEVEL_SUCCESS,
     GAME_WON
@@ -40,6 +39,15 @@ enum TileType : int
     WAYPOINT,   // Marks where the path turns, cannot be overwritten
     TURRET,
     COUNT
+};
+
+enum EnemyType : int
+{
+    BASIC,
+    SPEEDSTER,
+    TANK,
+    TRACKSTAR,
+    BODYBUILDER
 };
 
 struct Cell
@@ -123,12 +131,6 @@ std::vector<Cell> FloodFill(Cell start, int tiles[TILE_COUNT][TILE_COUNT], TileT
     return result;
 }
 
-//std::vector<Cell> waypoints;
-//std::vector<Bullet> bullets;
-//std::vector<Turret> turrets;
-//std::vector<Enemy> enemies;
-
-
 
 //BULLET SETUP =====================================================================================
 
@@ -150,12 +152,15 @@ struct Enemy
 {
     Cell cell;
     Vector2 enemy_position;
+    EnemyType type;
     float enemy_speed = 250.0f;
+    float radius = 10.0f;
     float min_distance = (enemy_speed / 60.0f) * 1.1f;
     float health = 100.0f;
     int curr = 0;
     bool at_end = false;
     bool destroy = false;
+    Color colour = RED;
 };
 
 int enemy_count = 0;
@@ -168,7 +173,7 @@ struct Turret
     Cell cell;
     Enemy* target;
     float damage = 25.0f;
-    float max_cooldown = 0.75f;
+    float max_cooldown = 1.0f;
     float cooldown = max_cooldown;
     bool destroy = false;
 };
@@ -191,6 +196,51 @@ struct Level
 bool level1Complete = false;
 bool level2Complete = false;
 bool level3Complete = false;
+
+
+//ENEMY TYPE DIFFERENCES ===========================================================================
+
+Enemy SpawnEnemy(EnemyType type)
+{
+    Enemy testEnemy{};
+    switch (type)
+    {
+    case BASIC: //Default Enemy
+        testEnemy.health = 100;
+        testEnemy.enemy_speed = 250.0f;
+        testEnemy.radius = 12.0f;
+        testEnemy.colour = RED;
+        break;
+    case SPEEDSTER: //Faster Speed & Less Health
+        testEnemy.health = 50;
+        testEnemy.enemy_speed = 500.0f;
+        testEnemy.radius = 10.0f;
+        testEnemy.colour = PINK;
+        break;
+    case TANK:  //Slower Speed & More Health
+        testEnemy.health = 200;
+        testEnemy.radius = 18.0f;
+        testEnemy.enemy_speed = 200.0f;
+        testEnemy.colour = DARKBLUE;
+        break;
+    case TRACKSTAR:   //Faster Speed
+        testEnemy.health = 100;
+        testEnemy.radius = 14.0f;
+        testEnemy.enemy_speed = 500.0f;
+        testEnemy.colour = YELLOW;
+        break;
+    case BODYBUILDER:   //More Health
+        testEnemy.health = 200.0f;
+        testEnemy.radius = 20.0f;
+        testEnemy.enemy_speed = 250.0f;
+        testEnemy.colour = MAROON;
+        break;
+    default:
+        break;
+    }
+
+    return testEnemy;
+}
 
 //PROGRAM MAIN ENTRY POINT =========================================================================
 
@@ -228,6 +278,7 @@ int main()
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // 19
     };
     Level level1;
+    level1.enemyTotal = 10;
 
     for (int row = 0; row < TILE_COUNT; row++)
     {
@@ -262,6 +313,7 @@ int main()
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0 }  // 19
     };
     Level level2;
+    level2.enemyTotal = 20;
 
     for (int row = 0; row < TILE_COUNT; row++)
     {
@@ -296,6 +348,7 @@ int main()
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0 }  // 19
     };
     Level level3;
+    level3.enemyTotal = 30;
 
     for (int row = 0; row < TILE_COUNT; row++)
     {
@@ -319,17 +372,6 @@ int main()
 
     float bullet_time_current = 0.0f;
     float bullet_time_total = 0.25f;
-
-
-    //TURRET CREATION ==================================================================================
-    
-        // Manual turret creation example
-    /*turrets.resize(5);
-    turrets[0].cell = { 1,  12 };
-    turrets[1].cell = { 4,  8 };
-    turrets[2].cell = { 7, 3 };
-    turrets[3].cell = { 10, 8 };
-    turrets[4].cell = { 16, 12 };*/
 
     // GAME WINDOW =====================================================================================
 
@@ -479,57 +521,6 @@ int main()
             }
         break;
 
-        //case LEVEL_TWO_FAILURE:
-        //
-        //    for (Enemy& enemy : enemies)
-        //    {
-        //        enemy.destroy = true;
-        //    }
-        //    for (Turret& turret : turrets)
-        //    {
-        //        turret.destroy = true;
-        //    }
-        //    for (Bullet& bullet : bullets)
-        //    {
-        //        bullet.destroy = true;
-        //    }
-        //    if (IsKeyPressed(KEY_SPACE))
-        //    {
-        //        levelFailure = false;
-        //        timer = 0.0f;   // Reset Timer
-        //        enemy_count = 0.0f;     // Reset Enemy Counter
-        //        currentScreen = LEVEL_TWO;
-        //    }
-        //    if (IsKeyPressed(KEY_BACKSPACE))
-        //    {
-        //        levelSuccess = false;
-        //        timer = 0.0f;   // Reset Timer
-        //        enemy_count = 0.0f;     // Reset Enemy Counter
-        //        currentScreen = LEVEL_ONE;
-        //    }
-
-        //break;
-
-        /*case LEVEL_TWO_SUCCESS:
-        
-            for (Enemy& enemy : enemies)
-            {
-                enemy.destroy = true;
-            }
-            for (Turret& turret : turrets)
-            {
-                turret.destroy = true;
-            }
-            for (Bullet& bullet : bullets)
-            {
-                bullet.destroy = true;
-            }
-            if (IsKeyPressed(KEY_SPACE))
-            {
-                currentScreen = LEVEL_THREE;
-            }
-        break;*/
-
         case LEVEL_THREE:
             level1Complete = true;
             level2Complete = true;
@@ -552,36 +543,6 @@ int main()
                 currentScreen = GAME_WON;
             }
         break;
-
-        //case LEVEL_THREE_FAILURE:
-        //
-        //    for (Enemy& enemy : enemies)
-        //    {
-        //        enemy.destroy = true;
-        //    }
-        //    for (Turret& turret : turrets)
-        //    {
-        //        turret.destroy = true;
-        //    }
-        //    for (Bullet& bullet : bullets)
-        //    {
-        //        bullet.destroy = true;
-        //    }
-        //    if (IsKeyPressed(KEY_SPACE))
-        //    {
-        //        levelFailure = false;
-        //        timer = 0.0f;   // Reset Timer
-        //        enemy_count = 0.0f;     // Reset Enemy Counter
-        //        currentScreen = LEVEL_THREE;
-        //    }
-        //    if (IsKeyPressed(KEY_BACKSPACE))
-        //    {
-        //        levelSuccess = false;
-        //        timer = 0.0f;   // Reset Timer
-        //        enemy_count = 0.0f;     // Reset Enemy Counter
-        //        currentScreen = LEVEL_ONE;
-        //    }
-        //break;
 
         case GAME_WON:
         
@@ -677,7 +638,7 @@ int main()
                     bullet.position = turret_position;
                     bullet.direction = Vector2Normalize(enemy_position - bullet.position);
 
-                    bullet.radius = 10;
+                    bullet.radius = 7;
 
                     bullet.color = BLACK;
 
@@ -801,26 +762,6 @@ int main()
             DrawText("LEVEL COMPLETE", 120, 320, 60, WHITE);
             DrawText("Press SPACE to Continue", 240, 750, 23, RAYWHITE);
         break;
-        //case LEVEL_TWO_FAILURE:
-        //
-        //    ClearBackground(RED);
-        //    DrawText("DEFEAT", 190, 320, 100, WHITE);
-        //    DrawText("Press SPACE to Retry Level Two", 190, 720, 23, RAYWHITE);
-        //    DrawText("Press BACKSPACE to Restart from Level One", 130, 750, 23, RAYWHITE);
-        //break;
-        //case LEVEL_TWO_SUCCESS:
-        //
-        //    ClearBackground(GREEN);
-        //    DrawText("LEVEL COMPLETE", 120, 320, 60, WHITE);
-        //    DrawText("Press SPACE to Continue", 240, 750, 23, RAYWHITE);
-        //break;
-        //case LEVEL_THREE_FAILURE:
-        //
-        //    ClearBackground(RED);
-        //    DrawText("DEFEAT", 190, 320, 100, WHITE);
-        //    DrawText("Press SPACE to Retry Level Three", 170, 720, 23, RAYWHITE);
-        //    DrawText("Press BACKSPACE to Restart from Level One", 130, 750, 23, RAYWHITE);
-        //break;
         case GAME_WON:
         
             ClearBackground(GOLD);
@@ -835,7 +776,7 @@ int main()
         
         for (const Enemy& enemy : currentLevel->enemies)
         {
-            DrawCircleV(enemy.enemy_position, 20.0f, RED);
+            DrawCircleV(enemy.enemy_position, enemy.radius, enemy.colour);
         }
 
         if (turret_count == 5)  // Don't start spawning enemies until 5 turrets are placed
@@ -846,9 +787,24 @@ int main()
             }
             if (timer >= 1.0f && enemy_count < currentLevel->enemyTotal)
             {
-                Enemy testEnemy;
-                testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
-                currentLevel->enemies.push_back(testEnemy);
+                if (currentScreen == LEVEL_ONE)
+                {
+                    Enemy testEnemy = SpawnEnemy(SPEEDSTER);
+                    testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                    currentLevel->enemies.push_back(testEnemy);
+                }
+                if (currentScreen == LEVEL_TWO)
+                {
+                    Enemy testEnemy = SpawnEnemy(BASIC);
+                    testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                    currentLevel->enemies.push_back(testEnemy);
+                }
+                if (currentScreen == LEVEL_THREE)
+                {
+                    Enemy testEnemy = SpawnEnemy(BASIC);
+                    testEnemy.enemy_position = TileCenter(currentLevel->waypoints[0].row, currentLevel->waypoints[0].col);
+                    currentLevel->enemies.push_back(testEnemy);
+                }
                 timer = timer - 1.0f;
                 timer = timer + dt;
                 enemy_count++;
@@ -884,22 +840,6 @@ int main()
                     currentLevel->turrets.push_back(testTurret);
                     turret_count++;
                 }
-                /*if (levelTwoTiles[mouseCell.row][mouseCell.col] == STONE)
-                {
-                    levelTwoTiles[mouseCell.row][mouseCell.col] = TURRET;
-                    Turret testTurret;
-                    testTurret.cell = mouseCell;
-                    turrets.push_back(testTurret);
-                    turret_count++;
-                }*/
-                /*if (levelThreeTiles[mouseCell.row][mouseCell.col] == STONE)
-                {
-                    levelThreeTiles[mouseCell.row][mouseCell.col] = TURRET;
-                    Turret testTurret;
-                    testTurret.cell = mouseCell;
-                    turrets.push_back(testTurret);
-                    turret_count++;
-                }*/
             };
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
             {
